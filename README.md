@@ -1,8 +1,16 @@
 # aimparency client
 
-# installation
+## installation
+clone repository, cd into it.
 
-# functionality overview
+run `npm install`
+
+start webpack `npx webpack --config webpack-dev.js`
+
+bundled js is written to `./dist`
+
+
+## functionality overview
 - Display activity graph
 - View activity details
 - Apply
