@@ -26,7 +26,7 @@ export default {
 			hc_conductor_protocol: 'ws',
 			hc_conductor_host: 'localhost',
 			hc_conductor_port: 8888,
-			conductor_instance: 'test-instance1',
+			conductor_instance: 'test-instance',
 			conductor_url: undefined,
 			conductor_key: undefined, 
 		}

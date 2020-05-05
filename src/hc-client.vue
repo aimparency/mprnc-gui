@@ -5,6 +5,36 @@
 		</div>
 		<div v-else>
 			<button v-on:click="refresh_all">refresh all</button>
+			<p> Your agent address: {{ agent_address }} </p>
+			<p> Create profile: 
+				<input 
+					type="text" 
+					v-model="new_profile.name"
+					placeholder="new profile name"
+					/>
+				<button v-on:click="createNewProfile()">create new profile</button>
+			</p>
+			<p> Selected profile: 
+				<select v-model="current_profile">
+					<option value=""> select a profile </option>
+					<option 
+						v-for="profile in available_profiles" 
+						:key="profile.creator"
+						v-bind:value="profile.creator">
+						{{ profile.name }}
+					</option>
+				</select>
+			</p>
+			<div>
+				<Aim v-for="aim in aims" :key="aim.address" v-bind:data="aim"/>
+				<div>
+					<h4>Create aim: </h4>
+					<p v-for="(value, name) in new_aim"> 
+						{{ name }}:
+						<input type="text" v-model="new_aim[name]" v-bind:placeholder="name"/>
+					</p>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -17,19 +47,16 @@ export default {
 		return {
 			agent_address: undefined, 
 			callZome: undefined, 
-			new_friendship_request_target_agent_address: undefined, 
-			new_followship_target_agent_address: undefined, 
-			incoming_friendship_requests: [],
-			outgoing_friendship_requests: [], 
-			followers: [], 
-			following: [], 
-			recently_creates_test_entry_address: "", 
-
-			new_test_entry_message: "", 
-			test_entries: [],
-			test_entry_addresses: [],
-			retrieved_test_entry_message: "", 
-			test_entry_address: "",
+			new_profile: {
+				name: "",
+			},
+			new_aim: {
+				title: undefined, 
+				description: undefined,
+			},
+			current_profile: undefined, 
+			available_profiles: [],
+			aims: [],
 		}
 	},
 	props: [
@@ -38,29 +65,49 @@ export default {
 	],
 	methods: {
 		refresh_all: function(event) {
+			this.refresh_available_profiles()
+			this.refresh_aims()
+		}, 
+		refresh_available_profiles: function() {
+			this.callZome(
+				this.conductor_instance, 
+				'profiles', 
+				'get_my_profiles'
+			)({}).then(result => {
+				result = JSON.parse(result)
+				this.available_profiles = result.Ok
+			})
 		},
+		refresh_aims: function() {
+			console.log("next step: implement refresh aims, also in happ") 
+		}, 
+		createNewProfile: function(event) {
+			this.callZome(
+				this.conductor_instance, 
+				'profiles', 
+				'create_profile'
+			)(this.new_profile).then(result => {
+				result = JSON.parse(result) 
+				console.log("profile creation result:", result) 
+			})
+		}
 	},
 	created: function() {
 		this.hc_connection = connect({url: this.conductor_url})
 		this.hc_connection.then(({callZome, close}) => {
-			//// example zome call: 
-			// callZome(
-			// 	this.conductor_instance, 
-			// 	'social_graph', 
-			// 	'my_agent_address'
-			// )({}).then(result => {
-			// 	try {
-			// 		var result = JSON.parse(result) 
-			// 		this.agent_address = result.Ok
-			// 		this.callZome = callZome
-			// 		this.refresh_all()
-			// 	} catch {
-			// 		console.error("bad response")
-			// 	}
-			// })
+			this.callZome = callZome
+			callZome(
+				this.conductor_instance, 
+				'profiles', 
+				'get_my_agent_address'
+			)({}).then(result => {
+				result = JSON.parse(result) 
+				this.agent_address = result.Ok
+				this.refresh_all()
+			})
 		})
 	},
-	components: {		
+	components: {
 	}
 }
 </script>
