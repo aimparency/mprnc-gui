@@ -4,7 +4,8 @@
   "description": "# installation",
   "main": "main.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "dev": "npx webpack --config webpack-dev.js"
   },
   "repository": {
     "type": "git",
@@ -16,18 +17,19 @@
     "url": "https://github.com/aimparency/client/issues"
   },
   "homepage": "https://github.com/aimparency/client#readme",
-  "dependencies": {
-    "react": "^16.11.0",
-    "react-dom": "^16.11.0"
-  },
   "devDependencies": {
-    "@babel/core": "^7.7.2",
-    "@babel/preset-env": "^7.7.1",
-    "@babel/preset-react": "^7.7.0",
-    "babel-loader": "^8.0.6",
-    "css-loader": "^3.2.0",
-    "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.10",
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "@babel/preset-react": "^7.9.4",
+    "@holochain/hc-web-client": "^0.5.3",
+    "babel-loader": "^8.1.0",
+    "css-loader": "^3.5.3",
+    "express": "^4.17.1",
+    "vue": "^2.6.11",
+    "vue-loader": "^15.9.2",
+    "vue-template-compiler": "^2.6.11",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
     "webpack-merge": "^4.2.2"
   }
 }

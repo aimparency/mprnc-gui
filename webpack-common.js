@@ -1,27 +1,29 @@
-var path = require('path') 
+const path = require('path') 
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 module.exports = {
-  entry: './src/main.jsx',
+  entry: './src/main.js',
+  output: {
+    filename: 'mprnc.js', 
+    path: path.resolve(__dirname, 'dist') 
+  },
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
-        exclude: /(node_modules|bower_components)/,
-        loader: "babel-loader",
-        options: { presets: ["@babel/env", "@babel/preset-react"] }
-      },
+        test: /\.vue$/, 
+        loader: 'vue-loader' 
+      }, 
       {
         test: /\.css$/,
-        use: ["css-loader"]
+        use: [
+          'vue-style-loader', 
+          'css-loader'
+        ]
       }
     ]
   },
-  resolve: {
-    extensions: [".js", ".jsx"]
-  },
-  output: {
-    filename: 'mprnc-client.js', 
-    path: path.resolve(__dirname, 'dist') 
-  },
+  plugins: [
+    new VueLoaderPlugin()
+  ], 
   context: __dirname
 }
