@@ -20,19 +20,20 @@
 					<option 
 						v-for="profile in available_profiles" 
 						:key="profile.creator"
-						v-bind:value="profile.creator">
-						{{ profile.name }}
+						v-bind:value="profile">
+						{{ profile.entry.name }}
 					</option>
 				</select>
 			</p>
-			<div>
+			<div v-if="current_profile !== undefined">
+				<p> current profile: {{ current_profile.entry.name }} </p>
 				<Aim v-for="aim in aims" :key="aim.address" v-bind:data="aim"/>
 				<div>
 					<h4>Create aim: </h4>
-					<p v-for="(value, name) in new_aim"> 
-						{{ name }}:
-						<input type="text" v-model="new_aim[name]" v-bind:placeholder="name"/>
+						<input type="text" v-model="new_aim.name" placeholder="name"/>
+						<textarea v-model="new_aim.description" placeholder="description"/>
 					</p>
+					<button v-on:click="createAim()">create new aim</button>
 				</div>
 			</div>
 		</div>
@@ -75,6 +76,7 @@ export default {
 				'get_my_profiles'
 			)({}).then(result => {
 				result = JSON.parse(result)
+				console.log("profiles result, deal with it^^", result)
 				this.available_profiles = result.Ok
 			})
 		},
@@ -121,12 +123,26 @@ div {
 	border-radius: 5px;
 	border: 2px solid rgba(45, 65, 100, 0.5);
 }
-input, button {
+p {
+	margin: 0.2em;
+}
+input, button, select, textarea {
 	padding: 0.3em; 
 	margin: 0.5em; 
 	border-radius: 0.3em;
 	background-color:#fff2;
 	color:#fff; 
+}
+textarea {
+	width: calc(100% - 1.2em);
+	border: none;
+	margin: 0.5em;
+	min-height:4em;
+	resize: vertical; 
+	background-color:#fff2;
+}
+option {
+	background-color: rgb(45, 75, 100);
 }
 input {
 	border: none; 
