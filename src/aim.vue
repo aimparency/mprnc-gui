@@ -1,8 +1,8 @@
 <template>
 	<div>
-		<h5>{{data.title}}</h5>
+		<p class="aim-title">{{data.title}}</p>
 		<p>{{data.description}}</p>
-		<p>{{data.date}}, <a>{{data.creator.slice(0,10) + "..."}}</a></p>
+		<p>{{data.timestamp_ms}}</p>
 	</div>
 </template>
 
@@ -29,5 +29,9 @@ export default {
 <style>
 	a {
 		color: #3388f2;
+	}
+	.aim-title {
+		font-size: 1.5em; 
+		font-weight: bold; 
 	}
 </style>

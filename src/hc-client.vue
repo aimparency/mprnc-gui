@@ -15,22 +15,22 @@
 				<button v-on:click="createNewProfile()">create new profile</button>
 			</p>
 			<p> Selected profile: 
-				<select v-model="current_profile">
-					<option value=""> select a profile </option>
+				<select v-model="current_profile" v-on:change="refresh_aims()">
+					<option v-bind:value="undefined"> select a profile </option>
 					<option 
 						v-for="profile in available_profiles" 
-						:key="profile.creator"
+						:key="profile.address"
 						v-bind:value="profile">
 						{{ profile.entry.name }}
 					</option>
 				</select>
 			</p>
-			<div v-if="current_profile !== undefined">
+			<div v-if="current_profile !== undefined" >
 				<p> current profile: {{ current_profile.entry.name }} </p>
 				<Aim v-for="aim in aims" :key="aim.address" v-bind:data="aim"/>
 				<div>
 					<h4>Create aim: </h4>
-						<input type="text" v-model="new_aim.name" placeholder="name"/>
+						<input type="text" v-model="new_aim.title" placeholder="name"/>
 						<textarea v-model="new_aim.description" placeholder="description"/>
 					</p>
 					<button v-on:click="createAim()">create new aim</button>
@@ -42,6 +42,7 @@
 
 <script>
 import { connect } from '@holochain/hc-web-client'
+import Aim from './aim.vue'
 
 export default {
 	data: function() {
@@ -81,7 +82,16 @@ export default {
 			})
 		},
 		refresh_aims: function() {
-			console.log("next step: implement refresh aims, also in happ") 
+			this.callZome(
+				this.conductor_instance, 
+				'aims', 
+				'get_aims'
+			)({profile: this.current_profile.address}).then(result => {
+				console.log(result) 
+				result = JSON.parse(result)
+				this.aims = result.Ok
+				console.log("aim list: ", this.aims) 
+			})
 		}, 
 		createNewProfile: function(event) {
 			this.callZome(
@@ -90,7 +100,21 @@ export default {
 				'create_profile'
 			)(this.new_profile).then(result => {
 				result = JSON.parse(result) 
-				console.log("profile creation result:", result) 
+				this.refresh_available_profiles()
+			})
+		}, 
+		createAim: function() {
+			this.callZome(
+				this.conductor_instance, 
+				'aims', 
+				'create_aim', 
+			)({
+				...this.new_aim,
+				profile: this.current_profile.address, 
+				timestamp_ms: Date.now(),
+			}).then(result => {
+				console.log(result) 
+				setTimeout(this.refresh_aims.bind(this), 100)
 			})
 		}
 	},
@@ -105,11 +129,12 @@ export default {
 			)({}).then(result => {
 				result = JSON.parse(result) 
 				this.agent_address = result.Ok
-				this.refresh_all()
+				this.refresh_available_profiles()
 			})
 		})
 	},
 	components: {
+		Aim
 	}
 }
 </script>
