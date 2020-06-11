@@ -29,10 +29,11 @@
 				<p> current profile: {{ current_profile.entry.name }} </p>
 				<Aim v-for="aim in aims" :key="aim.address" v-bind:data="aim"/>
 				<div>
-					<h4>Create aim: </h4>
-						<input type="text" v-model="new_aim.title" placeholder="name"/>
-						<textarea v-model="new_aim.description" placeholder="description"/>
-					</p>
+					<p>Create aim: </p>
+					<input type="text" v-model="new_aim.title" placeholder="title"/>
+					effort: <input type="text" v-model="new_aim.effort" placeholder="1d"/>
+					<textarea v-model="new_aim.description" placeholder="description"/>
+					<p class="error">{{ new_aim_mistakes }}</p>
 					<button v-on:click="createAim()">create new aim</button>
 				</div>
 			</div>
@@ -55,7 +56,9 @@ export default {
 			new_aim: {
 				title: undefined, 
 				description: undefined,
+				effort: undefined,
 			},
+			new_aim_mistakes: "",
 			current_profile: undefined, 
 			available_profiles: [],
 			aims: [],
@@ -104,19 +107,79 @@ export default {
 			})
 		}, 
 		createAim: function() {
-			this.callZome(
-				this.conductor_instance, 
-				'aims', 
-				'create_aim', 
-			)({
-				...this.new_aim,
-				profile: this.current_profile.address, 
-				timestamp_ms: Date.now(),
-			}).then(result => {
-				console.log(result) 
-				setTimeout(this.refresh_aims.bind(this), 100)
-			})
+			if(this.checkNewAimData()){
+				this.callZome(
+					this.conductor_instance, 
+					'aims', 
+					'create_aim', 
+				)({
+					...this.new_aim,
+					profile: this.current_profile.address, 
+					timestamp_ms: Date.now(),
+				}).then(result => {
+					console.log(result) 
+					setTimeout(this.refresh_aims.bind(this), 100)
+				})
+			}
+		},
+		/**
+		 * Checks that all information for a new aim creation given is ok.
+		 * Side Effect: hint for user in case of failed checks
+		 * 
+		 * @returns {boolean} true if all checks passed
+		 */
+		checkNewAimData: function() { 
+			let error = ""
+			let failure = false
+			let err = (msg) => {
+				error += ( error == "" ? "" : ", " ) + msg
+				failure = true
+			}	
+			if(this.new_aim.title == undefined || this.new_aim.title == "") {
+				err("title mustn't be empty")
+			}
+			let corrections = {
+				"minute": "min",
+				"hour": "h",
+				"day": "d",
+				"week": "w",
+				"month": "m",
+				"mon": "m",
+				"year": "y"
+			}
+			if(this.new_aim.effort == undefined) {
+				err("you must set an effort for this aim")
+			} else {
+				for(let correction in corrections){
+					if(this.new_aim.effort.slice(-correction.length) == correction) {
+						this.new_aim.effort = corrections[correction]
+					}
+				}
+				let allowed_units = ['min', 'h', 'd', 'w', 'm', 'y']
+				let at_least_one_unit_matched = false
+				for(let unit of allowed_units){
+					if(allowed_units.includes(this.new_aim.effort.slice(-unit.length))) {
+						at_least_one_unit_matched = true
+						break
+					}
+				}
+				if(!at_least_one_unit_matched) {
+					err("effort unit must be one of " + allowed_units.join(' | '))
+				}
+			}
+			if(this.new_aim.description == undefined) {
+				this.new_aim.description = ""
+			}
+			if(failure) {
+				this.new_aim_mistakes = error
+			} else {
+				this.new_aim_mistakes = ""
+			}
+			return !failure
 		}
+					
+				
+				
 	},
 	created: function() {
 		this.hc_connection = connect({url: this.conductor_url})
@@ -151,6 +214,11 @@ div {
 p {
 	margin: 0.2em;
 }
+
+p.error {
+	color: #ff7777;
+}
+
 input, button, select, textarea {
 	padding: 0.3em; 
 	margin: 0.5em; 
