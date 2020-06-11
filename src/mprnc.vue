@@ -1,41 +1,38 @@
 <template>
-	<div>
-		<div v-if="callZome === undefined" style="color:#bb492f">
-			not connected to the conductor
-		</div>
-		<div v-else>
-			<button v-on:click="refresh_all">refresh all</button>
-			<p> Your agent address: {{ agent_address }} </p>
-			<p> Create profile: 
-				<input 
-					type="text" 
-					v-model="new_profile.name"
-					placeholder="new profile name"
-					/>
-				<button v-on:click="createNewProfile()">create new profile</button>
-			</p>
-			<p> Selected profile: 
-				<select v-model="current_profile" v-on:change="refresh_aims()">
-					<option v-bind:value="undefined"> select a profile </option>
-					<option 
-						v-for="profile in available_profiles" 
-						:key="profile.address"
-						v-bind:value="profile">
-						{{ profile.entry.name }}
-					</option>
-				</select>
-			</p>
-			<div v-if="current_profile !== undefined" >
-				<p> current profile: {{ current_profile.entry.name }} </p>
-				<Aim v-for="aim in aims" :key="aim.address" v-bind:data="aim"/>
-				<div>
-					<p>Create aim: </p>
-					<input type="text" v-model="new_aim.title" placeholder="title"/>
-					effort: <input type="text" v-model="new_aim.effort" placeholder="1d"/>
-					<textarea v-model="new_aim.description" placeholder="description"/>
-					<p class="error">{{ new_aim_mistakes }}</p>
-					<button v-on:click="createAim()">create new aim</button>
-				</div>
+	<p v-if="callZome === undefined" class="error">
+		not connected to the conductor
+	</p>
+	<div v-else id="#mprnc">
+		<button v-on:click="refresh_all">refresh all</button>
+		<p> Your agent address: {{ agent_address }} </p>
+		<p> Create profile: 
+			<input 
+				type="text" 
+				v-model="new_profile.name"
+				placeholder="new profile name"
+				/>
+			<button v-on:click="createNewProfile()">create new profile</button>
+		</p>
+		<p> Selected profile: 
+			<select v-model="current_profile" v-on:change="refresh_aims()">
+				<option v-bind:value="undefined"> select a profile </option>
+				<option 
+					v-for="profile in available_profiles" 
+					:key="profile.address"
+					v-bind:value="profile">
+					{{ profile.entry.name }}
+				</option>
+			</select>
+		</p>
+		<div v-if="current_profile !== undefined" >
+			<Aim v-for="aim in aims" :key="aim.address" v-bind:data="aim"/>
+			<div>
+				<p>Create aim: </p>
+				<input type="text" v-model="new_aim.title" placeholder="title"/>
+				effort: <input type="text" v-model="new_aim.effort_str" placeholder="1d"/>
+				<textarea v-model="new_aim.description" placeholder="description"/>
+				<p class="error">{{ new_aim_mistakes }}</p>
+				<button v-on:click="createAim()">create new aim</button>
 			</div>
 		</div>
 	</div>
@@ -82,19 +79,25 @@ export default {
 				result = JSON.parse(result)
 				console.log("profiles result, deal with it^^", result)
 				this.available_profiles = result.Ok
+				if(this.current_profile == undefined && this.available_profiles !== undefined) {
+					this.current_profile = this.available_profiles[0]
+				}
+				this.refresh_aims()
 			})
 		},
 		refresh_aims: function() {
-			this.callZome(
-				this.conductor_instance, 
-				'aims', 
-				'get_aims'
-			)({profile: this.current_profile.address}).then(result => {
-				console.log(result) 
-				result = JSON.parse(result)
-				this.aims = result.Ok
-				console.log("aim list: ", this.aims) 
-			})
+			if(this.current_profile !== undefined) {
+				this.callZome(
+					this.conductor_instance, 
+					'aims', 
+					'get_aims'
+				)({profile: this.current_profile.address}).then(result => {
+					console.log(result) 
+					result = JSON.parse(result)
+					this.aims = result.Ok
+					console.log("aim list: ", this.aims) 
+				})
+			}
 		}, 
 		createNewProfile: function(event) {
 			this.callZome(
@@ -147,18 +150,18 @@ export default {
 				"mon": "m",
 				"year": "y"
 			}
-			if(this.new_aim.effort == undefined) {
+			if(this.new_aim.effort_str == undefined) {
 				err("you must set an effort for this aim")
 			} else {
 				for(let correction in corrections){
-					if(this.new_aim.effort.slice(-correction.length) == correction) {
-						this.new_aim.effort = corrections[correction]
+					if(this.new_aim.effort_str.slice(-correction.length) == correction) {
+						this.new_aim.effort_str = corrections[correction]
 					}
 				}
 				let allowed_units = ['min', 'h', 'd', 'w', 'm', 'y']
 				let at_least_one_unit_matched = false
 				for(let unit of allowed_units){
-					if(allowed_units.includes(this.new_aim.effort.slice(-unit.length))) {
+					if(allowed_units.includes(this.new_aim.effort_str.slice(-unit.length))) {
 						at_least_one_unit_matched = true
 						break
 					}
@@ -203,7 +206,7 @@ export default {
 </script>
 
 <style>
-div {
+div.sub {
 	color: #fff;
 	margin: 10px;
 	padding: 5px;
@@ -216,13 +219,14 @@ p {
 }
 
 p.error {
-	color: #ff7777;
+	color: #ff7766;
 }
 
 input, button, select, textarea {
 	padding: 0.3em; 
 	margin: 0.5em; 
 	border-radius: 0.3em;
+	border: 0.1em solid #444; 
 	background-color:#fff2;
 	color:#fff; 
 }
@@ -235,7 +239,7 @@ textarea {
 	background-color:#fff2;
 }
 option {
-	background-color: rgb(45, 75, 100);
+	background-color:#333; 
 }
 input {
 	border: none; 
@@ -244,10 +248,10 @@ input {
 	color: #aaa; 
 }
 button {
-	border: 0.15em solid white;
 	cursor: pointer;
+	background-color:#fff6; 
 }
 button:hover{
-	background-color:#fff6; 
+	background-color:#fff2; 
 }
 </style>
