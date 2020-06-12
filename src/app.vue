@@ -57,11 +57,14 @@ export default {
 body {
 	color: #eee;   
 	font-family: Sans-Serif;
+	background-color: #1b2233;
+	height: 100%; 
+	margin: 0px;
 }
 textarea {
 	font-family: Sans-Serif;
 }
 div {
-	outline: 1px solid #f0f5; 
+/*	outline: 1px solid #f0f5;  */
 }
 </style>

@@ -25,7 +25,15 @@
 			</select>
 		</p>
 		<div v-if="current_profile !== undefined" >
-			<Aim v-for="aim in aims" :key="aim.address" v-bind:data="aim"/>
+			<div class="current-aim">
+				<div class="navbar">
+					<div class="back"></div>
+					<div class="contributions"></div>
+				</div><div class="aimlist"> 
+					Root aims
+					<Aim v-for="aim in aims" :key="aim.address" v-bind:data="aim"/>
+				</div>
+			</div>
 			<div>
 				<p>Create aim: </p>
 				<input type="text" v-model="new_aim.title" placeholder="title"/>
@@ -220,6 +228,51 @@ p {
 
 p.error {
 	color: #ff7766;
+}
+
+.current-aim {
+	padding: 1em; 
+	height: 60%;
+	border-radius: 0.2em; 
+	box-shadow: 0em 0em 0.5em #000; 
+	padding: 1em 0em 1em 1em; 
+	margin: 2em 1em; 
+}
+
+.navbar, .aimlist { 
+	display: inline-block; 
+	margin: 0px; 
+	border: none; 
+	vertical-align: top; 
+}
+
+.navbar {
+	width: 2em; 
+	height: 100%; 
+}
+
+.aimlist {
+	width: calc(100% - 2em - 2em); 
+	padding: 0em 1em;
+}
+
+.navbar .back, 
+.navbar .contributions {
+	background-color: #fff6;
+	border-radius: 0.1em; 
+	cursor: pointer;
+}
+.navbar .back {
+	height: 2em; 
+}
+.navbar .back:hover,
+.navbar .contributions:hover {
+	background-color: #fff2;
+}
+
+.navbar .contributions {
+	margin-top: 1em;
+	height: 6em; 
 }
 
 input, button, select, textarea {

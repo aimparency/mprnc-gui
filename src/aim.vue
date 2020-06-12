@@ -3,8 +3,7 @@
 		<div class="left-side">
 			<p class="title">{{data.title}}</p>
 			<p class="description">{{data.description}}</p>
-		</div>
-		<div class="right-side">
+		</div><div class="right-side">
 			<p class="timestamp">{{ timestampToDate(data.timestamp_ms) }}</p>
 		</div>
 	</div>
@@ -49,7 +48,7 @@ let pad = (n) => ("0" + String(n)).substr(-2)
 		border-radius: 0.2em; 
 		box-shadow: 0em 0em 0.5em #000; 
 		padding: 1em; 
-		margin: 2em 1em; 
+		margin: 1em 0em; 
 	}
 	.aim .left-side, .aim .right-side {
 		display: inline-block; 
@@ -60,7 +59,7 @@ let pad = (n) => ("0" + String(n)).substr(-2)
 		width: 86%; 
 	}
 	.aim .right-side {
-		width: 13%; 
+		width: calc(14%); 
 		text-align: right
 	}
 	.aim a {
