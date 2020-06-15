@@ -11,11 +11,6 @@
 		<button v-on:click="setConductor">set conductor</button>
 	</div>
 	<div v-else>
-		<button v-on:click="test">test</button>
-		<Test
-			v-if="print_sth !== undefined"
-			v-bind:print_sth="print_sth"
-			v-bind:hc_call_zome="hc_call_zome"/>
 		<p> 
 			using conductor {{ hc_conductor_url }}, instance {{hc_conductor_instance}}
 			<button v-on:click="unsetConductor">switch</button>
@@ -29,7 +24,6 @@
 <script>
 import { connect } from '@holochain/hc-web-client'
 import Mprnc from './mprnc.vue'
-import Test from './test.vue'
 
 export default {
 	data: function() {
@@ -48,9 +42,6 @@ export default {
 		this.setConductor()
 	},
 	methods: {
-		test: function(a,b) {
-			this.print_sth(1,2)
-		},
 		setConductor: function(event) {
 			this.hc_conductor_url = 
 				this.hc_conductor_protocol + '://' + 
@@ -91,7 +82,6 @@ export default {
 		},
 	},
 	components: {		
-		Test, 
 		Mprnc
 	}
 }
