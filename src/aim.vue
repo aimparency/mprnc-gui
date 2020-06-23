@@ -18,21 +18,26 @@
 				v-on:blur="endEdit($event, 'description')"/>
 			</div>
 		</div><div class="right-side">
-			<p class="timestamp">{{ timestampToDate(data.timestamp_ms) }}</p>
 			<div><p 
-				v-text="getText('effort')"
+				v-text="getText('effort_str')"
 				contenteditable="true" 
 				class="effort"
-				v-on:focus="edit('effort')"
-				v-on:blur="endEdit($event, 'effort')"/>
+				v-on:focus="edit('effort_str')"
+				v-on:blur="endEdit($event, 'effort_str')"/>
 			</div>
+			<p class="timestamp">{{ timestampToDate(data.timestamp_ms) }}</p>
 		</div>
 		<div 
 			v-if="changesExist()"
 			v-bind:style="{backgroundColor: data.color}"
 			class="edit-buttons">
-			<button class="save">save</button>
-			<button class="discard">discard</button>
+			<p v-if="hint" class="error">{{ hint }}</p>
+			<button 
+				class="save"
+				v-on:click="validateAndSaveChanges">save</button>
+			<button 
+				class="discard"
+				v-on:click="discardChanges">discard</button>
 		</div>
 	</div>
 </template>
@@ -44,17 +49,14 @@ import Utils from './utils.js'
 let placeholders = {
 	title: "enter a title for the aim here", 
 	description: "add a detailed description",
-	effort: "estimate the effort"
+	effort_str: "estimate the effort"
 }
 
 export default {
 	data: function() {
 		return {
-			changes: {
-				title: undefined, 
-				description: undefined, 
-				effort: undefined
-			}
+			changes: {}, 
+			hint: "",
 		}
 	},
 	props: {
@@ -62,10 +64,12 @@ export default {
 		save_changes: Function
 	},
 	created: function() {
-		console.log(this.data.color)
-		console.log(Utils)
 	},
 	methods: {
+		discardChanges: function() {
+			this.changes = {}
+			this.hint = ""
+		},
 		getText: function(field) {
 			if(this.changes[field] !== undefined) {
 				return this.changes[field]
@@ -82,12 +86,10 @@ export default {
 		},
 		endEdit: function(event, field) {
 			this.$set(this.changes, field, event.target.innerText.trim() || undefined)
-			console.log(this.changes[field]) 
 		},
 		changesExist: function() {
 			for(let key in this.changes) {
 				if(this.changes[key] != this.data[key]) {
-					console.log(key)
 					return true
 				}
 			}
@@ -107,47 +109,29 @@ export default {
 			return time;
 		},
 		validateAndSaveChanges: function() {
-			if(this.validateChanges()){
-				this.save_changes(this.changes)
+			let ok = this.translateChanges()
+			if(ok) {
+				this.hint = this.save_changes(this.changes)
 			}
 		},
-		/**
-		 * Checks that all information for a new aim creation given is ok.
-		 * Side Effect: hint for user in case of failed checks
-		 * 
-		 * @returns {boolean} true if all checks passed
-		 */
-		validateChanges: function() { 
-			let error = ""
-			let failure = false
-			let err = (msg) => {
-				error += ( error == "" ? "" : ", " ) + msg
-				failure = true
-			}	
-			if(this.new_aim.title == undefined || this.new_aim.title == "") {
-				err("title mustn't be empty")
-			}
-			let corrections = {
-				"minute": "min",
-				"hour": "h",
-				"day": "d",
-				"week": "w",
-				"month": "m",
-				"mon": "m",
-				"year": "y"
-			}
-			if(this.new_aim.effort_str == undefined) {
+		translateChanges: function() {
+			let changes = Object.assign({}, this.changes)
+			translateEffortIfSet(changes) 
+		}
+		translateEffortIfSet: function(changes) {
+			let effort_str = changes.effort
+			if(this.changes.effort == undefined) {
 				err("you must set an effort for this aim")
 			} else {
 				for(let correction in corrections){
-					if(this.new_aim.effort_str.slice(-correction.length) == correction) {
-						this.new_aim.effort_str = corrections[correction]
+					if(effort_str.slice(-correction.length) == correction) {
+						effort_str = corrections[correction]
 					}
 				}
 				let allowed_units = ['min', 'h', 'd', 'w', 'm', 'y']
 				let matched_unit = undefined
 				for(let unit of allowed_units){
-					if(allowed_units.includes(this.new_aim.effort_str.slice(-unit.length))) {
+					if(allowed_units.includes(effort_str.slice(-unit.length))) {
 						matched_unit = unit
 						break
 					}
@@ -155,20 +139,49 @@ export default {
 				if(matched_unit === undefined) {
 					err("effort unit must be one of " + allowed_units.join(' | '))
 				}
-				if(isNaN(Number(this.new_aim.effort_str.slice(0,-3)))) {
+				if(isNaN(Number(effort_str.slice(0,-3)))) {
 					err("effort must be a number followed by a unit")
 				}
 			}
-			if(failure) {
-				this.invalid_changes = error
-			} else {
-				this.invalid_changes = ""
-			}
-			return !failure
-		},
 	},
 	components: {
 	}
+}
+
+/* TODO:
+	beim saven umwandeln in diese struktur: 
+	effort: Day: 1
+
+	in get Text diese struktur umwandeln zu Text
+		- methode map einführen
+
+	bei edit den Text replacen mit dem was map zurückgibt
+		
+	-
+
+	anderes thema: colos: auch mitschicken
+
+	hApp neu packagen
+
+	beten
+*/
+
+const corrections = {
+	"minute": "min",
+	"hour": "h",
+	"day": "d",
+	"week": "w",
+	"month": "m",
+	"year": "y"
+}
+
+const type = {
+	"min": "Minutes", 
+	"h": "Hours", 
+	"d": "Days", 
+	"w": "Weeks", 
+	"m": "Months", 
+	"y": "Years", 
 }
 
 </script>
@@ -193,14 +206,13 @@ export default {
 	width: calc(14%); 
 	text-align: right
 }
-.aim a {
-	color: #3388f2;
-}
-.aim p {
+
+.aim .title, .aim .description, .aim .effort {
+	width: calc(100% - 0.8em); 
 	margin: 0.1em;
 	display: inline-block; 
-	width: calc(100% - 0.2em); 
 }
+
 .aim .title {
 	font-weight: bold; 
 }
@@ -208,16 +220,20 @@ export default {
 	font-size: 0.7em; 
 }
 
+
 .edit-buttons {
 	position: absolute; 
 	right: 0em; 
 	top: calc(100% - 0.2em - 0.2em); /*compansate both border radiuses */ 
 	border-radius: 0.2em; 
 	padding: 0.4em; 
+	box-shadow: 0em 0.5em 0.5em -0.5em #000;
+	text-align: right; 
+	z-index: 10; 
 }
 
 .edit-buttons button {
-	margin:0.2em
+	margin:0.2em;
 }
 
 .edit-buttons .save {
@@ -232,5 +248,10 @@ export default {
 	&:hover {
 		background-color: rgba($abort-orange, 0.2); 
 	}
+}
+
+.edit-buttons .error {
+	color: $error-color; 
+	margin: 0.2em; 
 }
 </style>

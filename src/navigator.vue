@@ -34,16 +34,18 @@
 import Aim from './aim.vue'
 import Utils from './utils.js'
 
+const default_aim = {
+	timestamp_ms: undefined,
+	color: Utils.randomHexColor(0.4),
+	title: undefined,
+	description: undefined,
+	effort_str: undefined,
+};
+
 export default {
 	data: function() {
 		return {
-			new_aim: {
-				timestamp_ms: undefined,
-				color: Utils.randomHexColor(0.4),
-				title: undefined,
-				description: undefined,
-				effort: undefined,
-			},
+			new_aim: Object.assign({}, default_aim),
 			new_aim_mistakes: "",
 			aims: [],
 			history: [], // { address: ..., direction: 'contributing' | 'profitting' }  
@@ -72,19 +74,78 @@ export default {
 				})
 			}
 		}, 
-		createAim: function() {
-			if(this.checkNewAimData()){
+		createAim: function(changes) {
+			let aim = Object.assign({}, default_aim, changes, {
+				timestamp_ms: Date.now()
+			})
+			console.log("creating a new aim with data: ", aim) 
+			let errors = this.validateAimAttributes(aim)
+			if(errors) {
+				return errors
+			} else {
 				this.hc_call_zome(
 					'aims', 
 					'create_aim', 
 				)({
-					...this.new_aim,
-					profile: this.current_profile.address, 
-					timestamp_ms: Date.now(),
+					...aim,
+					profile: this.current_profile.address
 				}).then(result => {
 					console.log(result) 
 					setTimeout(this.refresh_aims.bind(this), 100)
 				})
+			}
+		},
+		updateAim: function(changes) {
+			
+		},
+		/**
+		 * Checks that all attributes of a given aim have valid values
+		 * Side Effect: hint for user in case of failed checks
+		 * 
+		 * @returns {String} error explanation, "" if all checks passed
+		 */
+		validateAimAttributes: function(aim) { 
+			let error = ""
+			let err = (msg) => {
+				error += ( error == "" ? "" : ", " ) + msg
+			}	
+			if(aim.title == undefined || aim.title == "") {
+				err("title mustn't be empty")
+			}
+			let corrections = {
+				"minute": "min",
+				"hour": "h",
+				"day": "d",
+				"week": "w",
+				"month": "m",
+				"mon": "m",
+				"year": "y"
+			}
+			if(aim.effort_str == undefined) {
+				err("you must set an effort for this aim")
+			} else {
+				for(let correction in corrections){
+					if(aim.effort_str.slice(-correction.length) == correction) {
+						aim.effort_str = corrections[correction]
+					}
+				}
+				let allowed_units = ['min', 'h', 'd', 'w', 'm', 'y']
+				let matched_unit = undefined
+				for(let unit of allowed_units){
+					if(allowed_units.includes(aim.effort_str.slice(-unit.length))) {
+						matched_unit = unit
+						break
+					}
+				}
+				if(matched_unit === undefined) {
+					err("effort unit must be one of " + allowed_units.join(' | '))
+				}
+				if(isNaN(Number(aim.effort_str.slice(0,-3)))) {
+					err("effort must be a number followed by a unit")
+				}
+			}
+			if(error != "") {
+				return error
 			}
 		},
 		formatEffort: function() {
@@ -143,14 +204,20 @@ export default {
 	background-color: #fff2;
 }
 
-input, button, select, textarea {
+input, button, select, textarea, [contenteditable="true"] {
 	padding: 0.3em; 
 	margin: 0.5em; 
 	border-radius: 0.3em;
-	border: 0.1em solid #444; 
+	border: none;
 	background-color:#fff2;
 	color:#fff; 
+	font-size: 1em;
 }
+
+button {
+	border: 0.1em solid #fff3; 
+}
+
 textarea {
 	width: calc(100% - 1.2em);
 	border: none;

@@ -92,7 +92,7 @@ div {
 	margin: 0; 
 	padding: 0; 
 	border: none; 
-	outline: 1px solid #f0f5;  
+	outline: 1px solid #f0f5; 
 }
 #hc_settings {
 	background-color: #fff1;
@@ -102,12 +102,13 @@ div {
 }
 
 p .error {
-	color: #f52;
+	color: $error-color;
 }
 
 body {
 	color: #eee;   
 	font-family: Sans-Serif;
+	font-size: 1em; 
 	background-color: #1b2233;
 	height: 100%; 
 	margin: 0px;
