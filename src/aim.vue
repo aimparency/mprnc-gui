@@ -34,7 +34,6 @@
 			<button class="save">save</button>
 			<button class="discard">discard</button>
 		</div>
-		<button v-on:click="test">test</button>
 	</div>
 </template>
 
@@ -93,9 +92,6 @@ export default {
 				}
 			}
 			return false
-		},
-		test: function() {
-			this.data.title = "hallo"
 		},
 		timestampToDate: function (timestamp){
 			if(timestamp === undefined) return "just now" 
