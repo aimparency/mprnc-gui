@@ -9,7 +9,7 @@ export default {
 		let length = Math.sqrt(r * r + g * g)
 		length = Math.sqrt(length * length + b * b)
 		let f = lightness / length
-		return '#' +
+		return "" +
 			this.pad2(parseInt(r * f * 256).toString(16)) +
 			this.pad2(parseInt(g * f * 256).toString(16)) +
 			this.pad2(parseInt(b * f * 256).toString(16))

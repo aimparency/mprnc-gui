@@ -1,17 +1,17 @@
 <template>
 	<div 
 		class="aim"
-		v-bind:style="{backgroundColor: data.color}">
+		v-bind:style="{backgroundColor: formatColor()}">
 		<div class="left-side">
 			<div><p 	
-				v-text="getText('title')"
+				v-text="getValue('title')"
 				contenteditable="true" 
 				class="title" 
 				v-on:focus="edit('title')" 
 				v-on:blur="endEdit($event, 'title')"/>
 			</div>
 			<div><p 
-				v-text="getText('description')"
+				v-text="getValue('description')"
 				contenteditable="true" 
 				class="description"
 				v-on:focus="edit('description')"
@@ -19,7 +19,7 @@
 			</div>
 		</div><div class="right-side">
 			<div><p 
-				v-text="getText('effort')"
+				v-text="getValue('effort')"
 				contenteditable="true" 
 				class="effort"
 				v-on:focus="edit('effort')"
@@ -29,7 +29,7 @@
 		</div>
 		<div 
 			v-if="changesExist()"
-			v-bind:style="{backgroundColor: data.color}"
+			v-bind:style="{backgroundColor: formatColor()}"
 			class="edit-buttons">
 			<p v-if="hint" class="error">{{ hint }}</p>
 			<button 
@@ -102,13 +102,17 @@ export default {
 		save_changes: Function
 	},
 	created: function() {
+		console.log(this.data.color.join(""))
 	},
 	methods: {
+		formatColor: function() {
+			return "#" + this.data.color.join("")
+		},
 		discardChanges: function() {
 			this.changes = {}
 			this.hint = ""
 		},
-		getText: function(field) {
+		getValue: function(field) {
 			if(this.changes[field] !== undefined) {
 				return this.changes[field]
 			} else {

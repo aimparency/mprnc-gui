@@ -57,11 +57,8 @@ export default {
 	methods: {
 		gen_new_aim: function() {
 			return {
-				timestamp_ms: undefined,
-				color: Utils.randomHexColor(0.4),
-				title: "",
-				description: "",
-				effort: undefined,
+				color: Utils.randomHexColor(0.4).split(""),
+				description: ""
 			}
 		},
 		refresh_aims: function() {
