@@ -20,6 +20,7 @@
 					v-bind:save_changes="updateAim"
 					v-bind:data="aim"/>
 				<Aim 
+					:key="new_aim_counter"
 					v-bind:is_create_template="true"
 					v-bind:save_changes="createAim"
 					v-bind:data="new_aim"/>
@@ -34,19 +35,12 @@
 import Aim from './aim.vue'
 import Utils from './utils.js'
 
-const default_aim = {
-	timestamp_ms: undefined,
-	color: Utils.randomHexColor(0.4),
-	title: undefined,
-	description: undefined,
-	effort_str: undefined,
-};
 
 export default {
 	data: function() {
 		return {
-			new_aim: Object.assign({}, default_aim),
-			new_aim_mistakes: "",
+			new_aim: this.gen_new_aim(),
+			new_aim_counter: 0,
 			aims: [],
 			history: [], // { address: ..., direction: 'contributing' | 'profitting' }  
 			history_pointer: -1, // points to the previous history entry
@@ -61,6 +55,15 @@ export default {
 		this.refresh_aims()
 	},
 	methods: {
+		gen_new_aim: function() {
+			return {
+				timestamp_ms: undefined,
+				color: Utils.randomHexColor(0.4),
+				title: "",
+				description: "",
+				effort: undefined,
+			}
+		},
 		refresh_aims: function() {
 			if(this.current_profile !== undefined) {
 				this.hc_call_zome(
@@ -75,7 +78,7 @@ export default {
 			}
 		}, 
 		createAim: function(changes) {
-			let aim = Object.assign({}, default_aim, changes, {
+			let aim = Object.assign({}, this.new_aim, changes, {
 				timestamp_ms: Date.now()
 			})
 			console.log("creating a new aim with data: ", aim) 
@@ -91,7 +94,11 @@ export default {
 					profile: this.current_profile.address
 				}).then(result => {
 					console.log(result) 
-					setTimeout(this.refresh_aims.bind(this), 100)
+					setTimeout(() => {
+						this.refresh_aims()
+						this.new_aim = this.gen_new_aim()
+						this.new_aim_counter += 1
+					}, 100)
 				})
 			}
 		},
@@ -121,29 +128,9 @@ export default {
 				"mon": "m",
 				"year": "y"
 			}
-			if(aim.effort_str == undefined) {
+			if(aim.effort == undefined) {
 				err("you must set an effort for this aim")
-			} else {
-				for(let correction in corrections){
-					if(aim.effort_str.slice(-correction.length) == correction) {
-						aim.effort_str = corrections[correction]
-					}
-				}
-				let allowed_units = ['min', 'h', 'd', 'w', 'm', 'y']
-				let matched_unit = undefined
-				for(let unit of allowed_units){
-					if(allowed_units.includes(aim.effort_str.slice(-unit.length))) {
-						matched_unit = unit
-						break
-					}
-				}
-				if(matched_unit === undefined) {
-					err("effort unit must be one of " + allowed_units.join(' | '))
-				}
-				if(isNaN(Number(aim.effort_str.slice(0,-3)))) {
-					err("effort must be a number followed by a unit")
-				}
-			}
+			} 
 			if(error != "") {
 				return error
 			}

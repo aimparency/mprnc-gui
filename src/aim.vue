@@ -19,11 +19,11 @@
 			</div>
 		</div><div class="right-side">
 			<div><p 
-				v-text="getText('effort_str')"
+				v-text="getText('effort')"
 				contenteditable="true" 
 				class="effort"
-				v-on:focus="edit('effort_str')"
-				v-on:blur="endEdit($event, 'effort_str')"/>
+				v-on:focus="edit('effort')"
+				v-on:blur="endEdit($event, 'effort')"/>
 			</div>
 			<p class="timestamp">{{ timestampToDate(data.timestamp_ms) }}</p>
 		</div>
@@ -49,7 +49,45 @@ import Utils from './utils.js'
 let placeholders = {
 	title: "enter a title for the aim here", 
 	description: "add a detailed description",
-	effort_str: "estimate the effort"
+	effort: "estimate the effort"
+}
+
+const corrections = {
+	"minute": "min",
+	"hour": "h",
+	"day": "d",
+	"week": "w",
+	"month": "m",
+	"year": "y"
+}
+
+const unit_type = {
+	"min": "Minutes", 
+	"h": "Hours", 
+	"d": "Days", 
+	"w": "Weeks", 
+	"m": "Months", 
+	"y": "Years", 
+}
+
+const unit_type_rev = {}
+for(let key in unit_type){
+	unit_type_rev[unit_type[key]] = key
+}
+
+const display = {
+	effort: value => {
+		if(typeof value == "object") {
+			let key = Object.keys(value)[0]
+			if(key !== undefined) {
+				return value[key] + unit_type_rev[key]
+			} 
+		}
+	}
+}
+
+const parse = {
+	
 }
 
 export default {
@@ -73,16 +111,23 @@ export default {
 		getText: function(field) {
 			if(this.changes[field] !== undefined) {
 				return this.changes[field]
-			} else if (this.data[field]) {
-				return this.data[field]
 			} else {
-				return placeholders[field] 
+				let value = this.data[field]
+				if(display[field]) {
+					value = display[field](value)
+				}
+				if (value) {
+					return value
+				} else {
+					return placeholders[field] 
+				}
 			}
 		},
 		edit: function(field) {
 			if(this.changes[field] === undefined) {
 				this.$set(this.changes, field, "")
 			}
+			// TODO: use existing text with display["field"]
 		},
 		endEdit: function(event, field) {
 			this.$set(this.changes, field, event.target.innerText.trim() || undefined)
@@ -109,18 +154,23 @@ export default {
 			return time;
 		},
 		validateAndSaveChanges: function() {
-			let ok = this.translateChanges()
-			if(ok) {
-				this.hint = this.save_changes(this.changes)
+			let changes = {}
+			for(let change in this.changes) {
+				if(this.changes[change] != undefined) {
+					changes[change] = this.changes[change]
+				}
+			}
+			if(this.validateAndTranslateEffort(changes)) {
+				this.hint = this.save_changes(changes)
 			}
 		},
-		translateChanges: function() {
-			let changes = Object.assign({}, this.changes)
-			translateEffortIfSet(changes) 
-		}
-		translateEffortIfSet: function(changes) {
+		validateAndTranslateEffort: function(changes) {
 			let effort_str = changes.effort
-			if(this.changes.effort == undefined) {
+			let error = ""
+			let err = (msg) => {
+				error += ( error == "" ? "" : ", " ) + msg
+			}	
+			if(effort_str == undefined) {
 				err("you must set an effort for this aim")
 			} else {
 				for(let correction in corrections){
@@ -131,18 +181,30 @@ export default {
 				let allowed_units = ['min', 'h', 'd', 'w', 'm', 'y']
 				let matched_unit = undefined
 				for(let unit of allowed_units){
-					if(allowed_units.includes(effort_str.slice(-unit.length))) {
+					if(unit == effort_str.slice(-unit.length)) {
 						matched_unit = unit
+						let value = Number(effort_str.slice(0, -unit.length))
+						if(isNaN(value)) {
+							err(`recognized unit "${unit}", but "${value}" is not a number`)
+						} else {
+							changes.effort = {
+								[unit_type[unit]]: value
+							}
+						}
 						break
 					}
 				}
 				if(matched_unit === undefined) {
 					err("effort unit must be one of " + allowed_units.join(' | '))
 				}
-				if(isNaN(Number(effort_str.slice(0,-3)))) {
-					err("effort must be a number followed by a unit")
-				}
 			}
+			if(error){
+				this.hint = error
+				return false
+			} else {
+				return true
+			}
+		},
 	},
 	components: {
 	}
@@ -165,24 +227,6 @@ export default {
 
 	beten
 */
-
-const corrections = {
-	"minute": "min",
-	"hour": "h",
-	"day": "d",
-	"week": "w",
-	"month": "m",
-	"year": "y"
-}
-
-const type = {
-	"min": "Minutes", 
-	"h": "Hours", 
-	"d": "Days", 
-	"w": "Weeks", 
-	"m": "Months", 
-	"y": "Years", 
-}
 
 </script>
 
