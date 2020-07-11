@@ -92,7 +92,7 @@ div {
 	margin: 0; 
 	padding: 0; 
 	border: none; 
-	outline: 1px solid #f0f5; 
+	/* outline: 1px solid #f0f5; */
 }
 #hc_settings {
 	background-color: #fff1;

@@ -43,7 +43,6 @@
 </template>
 
 <script>
-import Aim from './aim.vue'
 import Utils from './utils.js'
 
 let placeholders = {
@@ -265,6 +264,7 @@ export default {
 	font-weight: bold; 
 }
 .aim .timestamp {
+	margin:0.2rem;
 	font-size: 0.7em; 
 }
 

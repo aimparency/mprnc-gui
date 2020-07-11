@@ -1,19 +1,16 @@
 <template>
-	<div class="navigator">
-		<div class="v-split current-aim">
-			<div class="back to_contributing_aim">
-				&lt;
-			</div><div class="aim-details">
-				Root aims
-			</div><div class="back to_benefiting_aim">
-				&gt;
-			</div>
+	<div :class="{navigator: true, right: !view_left_side}">
+		<div 
+			v-for="page, i in pages" 
+			:key="i"
+			>
+			<AimDetails 
+				v-if="page.mode == 'details'"
+				/>
 		</div>
 
-		<div class="v-split connected-aims"> 
-			<div class="direction-switch show-contributing">
-				c
-			</div><div class="aimlist">
+		<div class="v-split contributing-aims">
+			<div class="aimlist"><!-- TODO: put this in a component? -->
 				<Aim 
 					v-for="aim in aims" 
 					:key="aim.address" 
@@ -24,9 +21,36 @@
 					v-bind:is_create_template="true"
 					v-bind:save_changes="createAim"
 					v-bind:data="new_aim"/>
-			</div><div class="direction-switch show-benefited">
-				b
 			</div>
+			<div class="input-sliders">
+			</div>
+		</div>
+		<div class="v-split detailed-aim">
+			<div class="root">
+				<b>Root aims</b><br/>
+				well, when no aim is selected, all root aims are displayed on the left.<br/>
+				There is also some info about what you can see here <br/>
+				It's the root view of the navigator. 
+			</div>
+		</div>
+		<div class="v-split benefited-aims"> 
+			<div class="aimlist">
+				<Aim 
+					v-for="aim in aims" 
+					:key="aim.address" 
+					v-bind:save_changes="updateAim"
+					v-bind:data="aim"/>
+				<Aim 
+					:key="new_aim_counter"
+					v-bind:is_create_template="true"
+					v-bind:save_changes="createAim"
+					v-bind:data="new_aim"/>
+			</div>
+		</div>
+		<div
+			v-on:click="shift"
+			:class="{shift_overlay: true, right: !view_left_side}">
+			this gets positioned over the partially hidden pag
 		</div>
 	</div>
 </template>
@@ -41,10 +65,12 @@ export default {
 		return {
 			new_aim: this.gen_new_aim(),
 			new_aim_counter: 0,
+			pages: [],
 			aims: [],
 			history: [], // { address: ..., direction: 'contributing' | 'profitting' }  
 			history_pointer: -1, // points to the previous history entry
 			current_aim: undefined,
+			view_left_side: true,
 		}
 	},
 	props: {
@@ -53,8 +79,31 @@ export default {
 	},
 	created: function() {
 		this.refresh_aims()
+		this.hc_call_zome('profiles', 'get_root_aim', {profile: this.current_profile.address}).then(result => {
+			this.page[0] = {
+				mode: 'empty' 
+			}
+			this.page[1] = {
+				mode: 'list',
+				connectedTo: result.Ok, 
+				connectionDirection: 'receiving'
+			}
+			this.page[2] = {
+				mode: 'details', 
+				aimAddress: result.Ok, 
+			}
+			this.page[3] = {
+				mode: 'list',
+				connectedTo: result.Ok,
+				connectedDirection: 'contributing'
+			}
+			console.log("root aim has address", result.Ok)
+		})
 	},
 	methods: {
+		shift: function() {
+			this.view_left_side = !this.view_left_side
+		},
 		gen_new_aim: function() {
 			return {
 				color: Utils.randomHexColor(0.4).split(""),
@@ -141,51 +190,78 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+$page-width: 31%; 
+$distance: 1%;
 
-#navigator {
-	padding: 1em; 
-	height: 60%;
-	border-radius: 0.2em; 
-	box-shadow: 0em 0em 0.5em #000; 
-	padding: 1em 0em 1em 1em; 
-	margin: 2em 1em; 
+@keyframes unshift {
+	from {
+		left: -46vw;
+	}
+	to {
+		left: 0vw; 
+	}
+}
+@keyframes shift {
+	from {
+		left: 0vw;
+	}
+	to {
+		left: -46vw; 
+	}
 }
 
+.navigator {
+	position:absolute;
+	left: 0vw; 
+	top: 10vh; 
+	width: 150vw; 
+	height: 80vh; 
+	animation-name: shift; 
+	animation-duration: 0.25s;
+	animation-timing-function: ease-in-out; 
+	animation-direction: reverse; 
+}
 
+.navigator.right {
+	animation-name: unshift;
+	left: -46vw;
+}
+
+.shift_overlay, 
 .v-split {
-	width: 2em; 
+	position:absolute; 
 	height: 100%; 
+	width: $page-width; 
+	top: 0%; 
+	background-color: #7772;
+	border-radius: 0.5vw; 
 }
 
-.current-aim,
-.connected-aims {
+.shift_overlay.right, 
+.contributing-aims {
+	left: $distance; 
+}
+
+.detailed-aim {
+	left: calc(#{$page-width} + 2 * #{$distance});
+}
+
+.detailed-aim .root {
+	position: absolute; 
+	top: 50%; 
 	width: 100%; 
+	text-align: center; 
+	transform: translate(0, -50%);
 }
 
-.connected-aims .aimlist,
-.current-aim .aim-details { 
-	display: inline-block; 
-	margin: 0px; 
-	border: none; 
-	vertical-align: top; 
-	width: calc(100% - 2em - 2em); 
-	padding: 0em 1em;
+.shift_overlay,
+.benefited-aims {
+	left: calc(2 * #{$page-width} + 3 * #{$distance});
 }
 
-.connected-aims .direction-switch,
-.current-aim .back {
-	display: inline-block; 
-	background-color: #fff6;
-	border-radius: 0.1em; 
-	cursor: pointer;
-	height: 2em; 
-	width: 2em; 
-}
-
-.connected-aims .direction-switch:hover,
-.current-aim .back:hover {
-	background-color: #fff2;
+.shift_overlay {
+	background-color: #fff4; 
 }
 
 input, button, select, textarea, [contenteditable="true"] {
