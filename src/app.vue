@@ -10,20 +10,22 @@
 		HC conductor instance: <input type="text" v-model="hc_conductor_instance" /> <br/>
 		<button v-on:click="setConductor">set conductor</button>
 	</div>
-	<div v-else>
+	<div
+		class="content"
+		v-else>
 		<p> 
-			using conductor {{ hc_conductor_url }}, instance {{hc_conductor_instance}}
-			<button v-on:click="unsetConductor">switch</button>
+			<button v-on:click="unsetConductor">switch conductor</button>
+			{{ hc_agent_address }}
 		</p>
-		{{ hc_agent_address }}
-		<Mprnc
-			v-bind:hc_call_zome="hc_call_zome"/>
+		<ListNavigator
+			v-bind:hc_call_zome="hc_call_zome"
+			/>
 	</div>
 </template>
 
 <script>
 import { connect } from '@holochain/hc-web-client'
-import Mprnc from './mprnc.vue'
+import ListNavigator from './list-navigator.vue'
 
 export default {
 	data: function() {
@@ -68,11 +70,18 @@ export default {
 		},
 		getAgentAddress: function() {
 			this.hc_call_zome(
-				'profiles', 
-				'get_my_agent_address'
+				'aims', 
+				'get_agent_address', 
 			)({}).then(result => {
 				result = JSON.parse(result) 
 				this.hc_agent_address = result.Ok
+			})
+			this.hc_call_zome(
+				'aims', 
+				'get_aims', 
+			)({}).then(result => {
+				result = JSON.parse(result) 
+				console.log("All aims: !!!!", result)
 			})
 		},
 		disconnectConductor: function() {
@@ -82,7 +91,7 @@ export default {
 		},
 	},
 	components: {		
-		Mprnc
+		ListNavigator
 	}
 }
 </script>
@@ -99,6 +108,10 @@ div {
 	border-radius: 1em; 
 	margin:1em; 
 	padding:1em; 
+}
+
+.content p {
+	margin: 0.2rem 1rem;
 }
 
 p .error {

@@ -1,38 +1,17 @@
 <template>
 	<div id="#mprnc">
 		<p> Your agent address: {{ agent_address }} </p>
-		<p> Create profile: 
-			<input 
-				type="text" 
-				v-model="new_profile.name"
-				placeholder="new profile name"
-				/>
-			<button v-on:click="createNewProfile()">create new profile</button>
-		</p>
-		<p> Selected profile: 
-			<select v-model="current_profile">
-				<option v-bind:value="undefined"> select a profile </option>
-				<option 
-					v-for="profile in available_profiles" 
-					:key="profile.address"
-					v-bind:value="profile">
-					{{ profile.entry.name }}
-				</option>
-			</select>
-		</p>
-		<div v-if="current_profile !== undefined">
-			<Navigator
-				v-if="view === 'navigator'"
-				:key="current_profile.address"
-				v-bind:hc_call_zome="hc_call_zome"
-				v-bind:current_profile="current_profile"/>
-			<Footer/>
-		</div>
+		<Navigator
+			v-if="view === 'navigator'"
+			:key="current_profile.address"
+			v-bind:hc_call_zome="hc_call_zome"
+			v-bind:current_profile="current_profile"/>
+		<Footer/>
 	</div>
 </template>
 
 <script>
-import Navigator from './navigator.vue'
+import LiNavigator from './navigator.vue'
 
 export default {
 	data: function() {
