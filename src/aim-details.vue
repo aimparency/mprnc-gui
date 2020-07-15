@@ -38,16 +38,19 @@
 			v-on:blur="endTextEdit($event, 'description')"/>
 		</div>
 
-
 		<div 
-			v-if="changes_exist"
 			class="edit-buttons">
 			<p v-for="o, key in hints" :key="key" class="error">{{key}}: {{o}}</p>
 			<button 
-				v-if="!errors_exist"
+				v-if="settings.aim_address == undefined"
+				class="cancel"
+				v-on:click="backToList">cancel</button>
+			<button 
+				v-if="changes_exist && !errors_exist"
 				class="save"
 				v-on:click="validateAndSaveChanges">save</button>
 			<button 
+				v-if="changes_exist"
 				class="discard"
 				v-on:click="clearChanges">discard</button>
 		</div>
@@ -201,6 +204,15 @@ export default {
 						trace: [result.Ok],
 					}
 				})
+			})
+		},
+		backToList: function() {
+			this.switch_page({
+				type: 'aim-list',
+				settings: {
+					connected_to: this.settings.connected_to,
+					relation: this.settings.relation, 
+				}
 			})
 		},
 		editText: function(event, field) {
