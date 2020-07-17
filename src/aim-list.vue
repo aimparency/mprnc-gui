@@ -87,19 +87,16 @@ export default {
 	},
 	created: function() {
 		if(this.settings.connected_to !== undefined) {
-			console.log(this.settings)
 			this.hc_call_zome("aims", `get_${this.settings.relation}_aims`)({
 				aim_address: this.settings.connected_to
 			}).then(result => {
 				result = JSON.parse(result) 
 				this.aims = result.Ok
-				console.log("get aims call result", this.settings.relation, result)
 			})
 		}
 	},
 	methods: {
 		view_details_fn: function (aim_address) {
-			console.log("creating view_details with aim_address", aim_address)
 			return () => { this.view_details(aim_address) }
 		},
 		add_new_aim: function() {
@@ -129,6 +126,9 @@ export default {
 	box-shadow: 0rem 0rem 0.5rem #000; 
 	padding: 1rem; 
 	height: calc(100% - 2rem);
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: #87ceeb #ff5621;
 }
 
 .aim-list .search,

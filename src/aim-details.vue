@@ -3,6 +3,7 @@
 		v-if="loading"
 		:class="{loading: true}"
 	>
+		<div class="spinner"></div>
 	</div>
 	<div 
 		v-else
@@ -102,7 +103,6 @@ export default {
 		if(this.settings.aim_address !== undefined) {
 			this.hc_call_zome('aims', 'get_aim_details')({aim_address: this.settings.aim_address}).then(result => {
 				result = JSON.parse(result) 
-				console.log("get aim details result", result)
 				this.aim = result.Ok.aim
 				this.clearChanges()
 				this.loading = false
@@ -182,7 +182,6 @@ export default {
 				...this.aim
 			}).then(result => {
 				result = JSON.parse(result) 
-				console.log("update_aim response", result)
 			})
 		}, 
 		createAim: function() {
@@ -194,16 +193,17 @@ export default {
 				connected_aim_address: this.settings.connected_to
 			}).then(result => {
 				result = JSON.parse(result) 
-				console.log("aim created", result)
 				this.loading = true
-				this.switch_page({
-					type: 'aim-list',
-					settings: {
-						connected_to: this.settings.connected_to,
-						relation: this.settings.relation, 
-						trace: [result.Ok],
-					}
-				})
+				setTimeout( () => {
+					this.switch_page({
+						type: 'aim-list',
+						settings: {
+							connected_to: this.settings.connected_to,
+							relation: this.settings.relation, 
+							trace: [result.Ok],
+						}
+					})
+				}, 150)
 			})
 		},
 		backToList: function() {
@@ -235,7 +235,6 @@ export default {
 			}
 		},
 		editEffort: function() {
-			console.log("starting effort: ", this.effort_str_input, this.effort_str)
 			event.target.innerText = this.effort_str_input || this.effort_str
 		},
 		abortEffortEdit: function(event) {
@@ -245,9 +244,7 @@ export default {
 		endEffortEdit: function(event) {
 			let v = event.target.innerText
 			let parsed = Effort.from_str(v)
-			console.log(parsed)
 			if('Ok' in parsed) {
-				console.log("parsed works") 
 				this.effort_str_input = undefined
 				this.changes = {
 					...this.changes, 
@@ -276,6 +273,8 @@ export default {
 </script>
 
 <style lang="scss">
+@import "spinner.scss";
+
 .aimDetail {
 	position:relative; 
 	border-radius: 0.5rem; 
@@ -283,6 +282,7 @@ export default {
 	padding: 1rem; 
 	margin: 0rem 0rem; 
 	height: calc( 100% - 2rem) ; 
+	overflow-y: auto;
 }
 .aimDetail .left-side, .aimDetail .right-side {
 	display: inline-block; 
@@ -290,18 +290,18 @@ export default {
 	vertical-align: top; 
 }
 .aimDetail .left-side {
-	width: 86%; 
+	width: 80%; 
 }
 .aimDetail .right-side {
-	width: calc(14%); 
+	width: calc(20%); 
 	text-align: right
 }
 
 .aimDetail .title, 
 .aimDetail .description, 
 .aimDetail .effort {
-	width: calc(100% - 0.8em); 
-	margin: 0.1em;
+	width: calc(100% - 0.8rem); 
+	margin: 0.1rem;
 	display: inline-block; 
 }
 
@@ -318,7 +318,7 @@ export default {
 }
 .aimDetail .timestamp {
 	margin:0.2rem;
-	font-size: 1rem; 
+	font-size: 0.7rem; 
 }
 
 

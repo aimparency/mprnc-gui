@@ -6,7 +6,7 @@
 			<div 
 				:class="{slot: true, ['position' + slot.position]: true}"
 				v-for="slot, i in slots" 
-				:key="i"
+				v-bind:key="i"
 				>
 				<component 
 					v-if="slot.mode == 'page'"
@@ -21,6 +21,8 @@
 			<div
 				v-on:click="shift"
 				:class="{overlay: true, ['position' + (center_slot + (show_right ? -1 : 1))]: true}">
+				<div v-if="show_right" class='contrib'> <p> contributing aims </p> </div>
+				<div v-else class='rec'> <p> receiving aims </p> </div>
 			</div>
 		</div>
 	</div>
@@ -146,7 +148,8 @@ export default {
 <style lang="scss">
 $debug-slots: false;
 
-$slot-spacing: 3%; 
+$slot-spacing-fraction: 0.03; 
+$slot-spacing: 100% * $slot-spacing-fraction; 
 $slot-width: 50% - 2 * $slot-spacing;
 
 .cropper {
@@ -184,14 +187,35 @@ $slot-width: 50% - 2 * $slot-spacing;
 	border-radius: 0.5rem; 
 	width: $slot-width; 
 	height: 100%; 
-	background-color: #fff4;
+	background-color: #7779;
 	cursor: pointer; 
 }
 
 @for $i from 0 through 6 {
-	.navigator .position#{$i}) {
+	.navigator .position#{$i} {
 		left: ($i - 1) * ($slot-spacing + $slot-width) + $slot-spacing;
 	}
+}
+
+
+.overlay .rec, 
+.overlay .contrib {
+	text-align: center;
+	line-height: ($slot-spacing-fraction * 100vw);
+	position:absolute; 
+	width: 80vh; 
+}
+
+.overlay .contrib {
+	left: 100%;
+	transform-origin: 0 0;
+	transform: rotate(90deg);
+}
+
+.overlay .rec {
+	top: 100%;
+	transform-origin: 0 0;
+	transform: rotate(-90deg);
 }
 
 input, button, select, textarea, [contenteditable="true"] {

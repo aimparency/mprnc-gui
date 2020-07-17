@@ -27,7 +27,6 @@ for(let key in unit_type){
 
 export default {
 	to_str: effort => {
-		console.log("effort", effort) 
 		let key = Object.keys(effort)[0]
 		if(key !== undefined) {
 			return effort[key] + unit_type_rev[key]
@@ -41,7 +40,6 @@ export default {
 	},
 	from_str: effort_str => {
 		let trimmed = effort_str.trim() 
-
 		let numbers = trimmed.match(/(^(\d)*)/)[0]
 		if(numbers.length > 0) {
 			let value = Number(numbers)

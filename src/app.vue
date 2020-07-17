@@ -81,7 +81,6 @@ export default {
 				'get_aims', 
 			)({}).then(result => {
 				result = JSON.parse(result) 
-				console.log("All aims: !!!!", result)
 			})
 		},
 		disconnectConductor: function() {
@@ -96,7 +95,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
 div {
 	margin: 0; 
 	padding: 0; 
@@ -110,6 +109,10 @@ div {
 	padding:1em; 
 }
 
+.content {
+	overflow:hidden; 
+}
+
 .content p {
 	margin: 0.2rem 1rem;
 }
@@ -119,6 +122,7 @@ p .error {
 }
 
 body {
+	overflow: hidden;
 	color: #eee;   
 	font-family: Sans-Serif;
 	font-size: 1em; 
