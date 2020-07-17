@@ -3,18 +3,8 @@
 ## installation
 clone repository, cd into it.
 
-run `npm install`
+run `npm install`.
 
-start webpack `npx webpack --config webpack-dev.js`
+start webpack `npx webpack --config webpack-dev.js`.
 
-bundled js is written to `./dist`
-
-
-## functionality overview
-- Display activity graph
-- View activity details
-- Apply
-- Review applications
-- Edit own contact details
-- Notifications
-- Reflections
+Open `./dist/index.html` with your browser.
