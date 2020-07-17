@@ -39,7 +39,7 @@ export default {
 			slots: [],
 			center_slot: 2,
 			center_index: 2, 
-			show_right: true,
+			show_right: false,
 		}
 	},
 	props: {
